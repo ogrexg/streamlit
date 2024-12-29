@@ -7,6 +7,7 @@ import os
 import time
 import ast
 import io
+import shutil
 
 def load_schemas(main_file_name: str) -> Dict:
     try:
@@ -15,6 +16,11 @@ def load_schemas(main_file_name: str) -> Dict:
     except FileNotFoundError:
         schemas = {}
     return schemas
+
+def create_backup(main_file_name: str):
+    """Создает бэкап основного файла схем."""
+    backup_file_name = f"backup_{main_file_name}"
+    shutil.copy(main_file_name, backup_file_name)
 
 def create_scheme(name, schema_data):
     existing_schemes = barfi_schemas()
@@ -28,11 +34,16 @@ def create_scheme(name, schema_data):
             return
     except:
         schema_data = ""
+    
+    # Создаем бэкап перед сохранением новой схемы
+    create_backup('schemas.barfi')
     save_schema(name, schema_data)
     st.balloons()
 
 def delete_scheme(name):
     st.balloons()
+    # Создаем бэкап перед удалением схемы
+    create_backup('schemas.barfi')
     delete_schema(name)
 
 def get_additional_files(directory):
@@ -66,6 +77,8 @@ def synchronize_schemas(main_file_name: str, additional_directory: str) -> None:
         else:
             main_schemas[name] = additional_schema
 
+    # Создаем бэкап перед сохранением изменений
+    create_backup(main_file_name)
     with open(main_file_name, 'wb') as handle_write:
         pickle.dump(main_schemas, handle_write)
 
@@ -90,7 +103,8 @@ def import_schema(file, main_file_name: str):
                 main_schemas[selected_schema] = imported_schemas[selected_schema]
                 st.success(f"Схема '{selected_schema}' успешно импортирована!")
 
-                # Сохраняем обновленный основной файл схем
+                # Создаем бэкап перед сохранением обновленного основного файла
+                create_backup(main_file_name)
                 with open(main_file_name, 'wb') as handle_write:
                     pickle.dump(main_schemas, handle_write)
 
@@ -147,7 +161,8 @@ def duplicate_schema(main_file_name: str):
                 main_schemas[new_schema_name] = main_schemas[selected_schema]
                 st.success(f"Схема '{selected_schema}' успешно дублирована как '{new_schema_name}'!")
 
-                # Сохраняем обновленный основной файл схем
+                # Создаем бэкап перед сохранением обновленного основного файла
+                create_backup(main_file_name)
                 with open(main_file_name, 'wb') as handle_write:
                     pickle.dump(main_schemas, handle_write)
     else:
