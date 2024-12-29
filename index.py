@@ -1,11 +1,12 @@
 import streamlit as st
 import pickle
 from barfi import save_schema, barfi_schemas, Block, st_barfi
-from barfi.manage_schema import delete_schema, load_schema_name
+from barfi.manage_schema import delete_schema
 from typing import Dict
 import os
 import time
 import ast
+import io
 
 def load_schemas(main_file_name: str) -> Dict:
     try:
@@ -68,6 +69,90 @@ def synchronize_schemas(main_file_name: str, additional_directory: str) -> None:
     with open(main_file_name, 'wb') as handle_write:
         pickle.dump(main_schemas, handle_write)
 
+def import_schema(file, main_file_name: str):
+    try:
+        # Загружаем схемы из загруженного файла
+        imported_schemas = pickle.load(file)
+        
+        # Загружаем существующие схемы из основного файла
+        main_schemas = load_schemas(main_file_name)
+
+        # Получаем список названий схем для выбора
+        schema_names = list(imported_schemas.keys())
+        
+        # Выбор схемы для импорта
+        selected_schema = st.selectbox("Выберите схему для импорта", schema_names)
+
+        if st.button("Импортировать"):
+            if selected_schema in main_schemas:
+                st.warning(f"Схема '{selected_schema}' уже существует. Пропускаем.")
+            else:
+                main_schemas[selected_schema] = imported_schemas[selected_schema]
+                st.success(f"Схема '{selected_schema}' успешно импортирована!")
+
+                # Сохраняем обновленный основной файл схем
+                with open(main_file_name, 'wb') as handle_write:
+                    pickle.dump(main_schemas, handle_write)
+
+    except Exception as e:
+        st.error(f"Ошибка при импорте схемы: {e}")
+
+def export_schema(main_file_name: str):
+    """Экспортирует выбранную схему в отдельный файл."""
+    main_schemas = load_schemas(main_file_name)
+    
+    if main_schemas:
+        schema_names = list(main_schemas.keys())
+        
+        # Выбор схемы для экспорта
+        selected_schema = st.selectbox("Выберите схему для экспорта", schema_names)
+
+        if st.button("Подготовить к экспорту"):
+            schema_to_export = {selected_schema: main_schemas[selected_schema]}
+            
+            # Используем имя выбранной схемы как имя файла
+            export_file_name = selected_schema
+
+            # Создаем байтовый поток для сохранения схемы
+            buffer = io.BytesIO()
+            pickle.dump(schema_to_export, buffer)
+            buffer.seek(0)  # Сбросить указатель на начало потока
+
+            # Кнопка для скачивания файла
+            st.download_button(
+                label="Скачать схему",
+                data=buffer,
+                file_name=f"{export_file_name}.barfi",
+                mime="application/octet-stream"
+            )
+    else:
+        st.warning("Нет доступных схем для экспорта.")
+
+def duplicate_schema(main_file_name: str):
+    """Дублирует выбранную схему с новым именем."""
+    main_schemas = load_schemas(main_file_name)
+    
+    if main_schemas:
+        schema_names = list(main_schemas.keys())
+        
+        # Выбор схемы для дублирования
+        selected_schema = st.selectbox("Выберите схему для дублирования", schema_names)
+
+        new_schema_name = st.text_input("Введите новое имя для дубликата", value=f"{selected_schema}_copy")
+
+        if st.button("Дублировать"):
+            if new_schema_name in main_schemas:
+                st.warning(f"Схема с именем '{new_schema_name}' уже существует. Выберите другое имя.")
+            else:
+                main_schemas[new_schema_name] = main_schemas[selected_schema]
+                st.success(f"Схема '{selected_schema}' успешно дублирована как '{new_schema_name}'!")
+
+                # Сохраняем обновленный основной файл схем
+                with open(main_file_name, 'wb') as handle_write:
+                    pickle.dump(main_schemas, handle_write)
+    else:
+        st.warning("Нет доступных схем для дублирования.")
+
 def make_base_blocks():
     feed = Block(name='Feed')
     feed.add_output()
@@ -120,7 +205,10 @@ def main():
         "Список схем",  
         "Редактор схем",
         "Удаление схемы", 
-        "Синхронизация схем"  # Новый пункт меню
+        "Синхронизация схем",
+        "Импорт схемы", 
+        "Экспорт схемы",
+        "Дублировать схему"
     ]) 
 
     if menu == "Создание схемы": 
@@ -227,5 +315,19 @@ def main():
             synchronize_schemas(main_file, additional_directory)
             st.success("Схемы успешно синхронизированы!")
 
+    elif menu == "Импорт схемы":
+        st.header("Импорт схемы")
+        uploaded_file = st.file_uploader("Выберите файл .barfi", type=["barfi"])
+        if uploaded_file is not None:
+            import_schema(uploaded_file, 'schemas.barfi')  # Укажите основной файл схем
+
+    elif menu == "Экспорт схемы":
+        st.header("Экспорт схемы")
+        export_schema('schemas.barfi')  # Укажите основной файл схем
+
+    elif menu == "Дублировать схему":
+        st.header("Дублировать схему")
+        duplicate_schema('schemas.barfi')  # Укажите основной файл схем
+        
 if __name__ == "__main__":
     main()
