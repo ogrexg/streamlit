@@ -1,14 +1,15 @@
-import streamlit as st
-import pickle
-from barfi import save_schema, barfi_schemas, Block, st_barfi
-from barfi.manage_schema import delete_schema
-from typing import Dict
-import os
-import time
-import ast
-import io
-import shutil
-from datetime import datetime, timedelta 
+import streamlit as st                                          # Импорт библиотеки Streamlit для создания веб-приложений
+import pickle                                                   # Импорт модуля pickle для сериализации и десериализации объектов Python
+from barfi import save_schema, barfi_schemas, Block, st_barfi   # Импорт функций и классов из библиотеки barfi для работы со схемами
+from barfi.manage_schema import delete_schema                   # Импорт функции для удаления схем из библиотеки barfi
+from typing import Dict                                         # Импорт типа Dict для аннотирования типов данных
+import os                                                       # Импорт модуля os для взаимодействия с операционной системой
+import time                                                     # Импорт модуля time для работы со временем (например, задержки).
+import ast                                                      # Импорт модуля ast для работы с абстрактным синтаксическим деревом
+import io                                                       # Импорт модуля io для работы с потоками ввода/вывода
+import shutil                                                   # Импорт модуля shutil для операций с файлами и директориями
+from datetime import datetime, timedelta                        # Импорт классов datetime и timedelta для работы с датами и временем.
+
 
 def load_schemas(main_file_name: str) -> Dict:
     """Загружает схемы из основного файла."""
