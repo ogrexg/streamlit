@@ -55,3 +55,4 @@
 - Приложение автоматически создает резервные копии основного файла схем каждые 15 минут.
 - Бэкапы сохраняются в папке `backups` с временной меткой в имени файла.
 
+[![Посмотреть видео](https://raw.githubusercontent.com/username/repository/branch/path/to/thumbnail.jpg)](https://github.com/ogrexg/streamlit/blob/main/video.mp4)
