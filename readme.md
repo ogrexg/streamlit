@@ -97,5 +97,7 @@ Barfi Schema Editor — это веб-приложение, разработан
   - Приложение проверяет, прошло ли 15 минут с последнего бэкапа.
   - Если прошло, создается резервная копия основного файла схем в папке `backups` с временной меткой в имени копии.
 
-[![Посмотреть видео]](https://youtu.be/etZulc7WluA?si=9gpmlnSySLoPVxYQ)
+[![Посмотреть видео](https://img.youtube.com/vi/9gpmlnSySLoPVxYQ/0.jpg)](https://youtu.be/etZulc7WluA?si=9gpmlnSySLoPVxYQ)
+
+
 
