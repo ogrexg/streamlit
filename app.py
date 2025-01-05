@@ -16,22 +16,21 @@ def load_schemas(main_file_name: str) -> Dict:
     try:
         # Открываем файл и загружаем схемы
         with open(main_file_name, 'rb') as handle_read:
-            schemas = pickle.load(handle_read)
+            schemas = pickle.load(handle_read)  # Загружаем данные из файла с помощью pickle
     except FileNotFoundError:
         # Если файл не найден, возвращаем пустой словарь
         schemas = {}
-    return schemas
+    return schemas  # Возвращаем загруженные схемы
 
 def create_backup(main_file_name: str):
-    """Создает бэкап основного файла схем в папке backups."""
-    # Получаем текущую дату и время в формате "ГГГГ-ММ-ДД_ЧЧ-ММ-СС"
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")  
-    backup_dir = "backups"  # Папка для бэкапов
+    """Создает бэкап основного файла схем в папке backups"""
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")  # Получаем текущую дату и время для имени файла
+    backup_dir = "backups"  # Указываем папку для бэкапов
     os.makedirs(backup_dir, exist_ok=True)  # Создаем папку, если она не существует
 
     # Формируем имя файла бэкапа с временной меткой
     backup_file_name = os.path.join(backup_dir, f"backup_{timestamp}.barfi")  
-    shutil.copy(main_file_name, backup_file_name)  # Копируем файл в папку бэкапов
+    shutil.copy(main_file_name, backup_file_name)  # Копируем основной файл в папку бэкапов
 
 def check_and_create_backup(main_file_name: str):
     """Проверяет, прошло ли 15 минут с последнего бэкапа, и создает новый бэкап при необходимости."""
@@ -49,14 +48,13 @@ def create_scheme(name, schema_data):
     """Создает новую схему с указанным именем и данными."""
     existing_schemes = barfi_schemas()  # Получаем существующие схемы
     try:
-        # Пробуем преобразовать строку в словарь
-        schema_data = ast.literal_eval(schema_data)
+        schema_data = ast.literal_eval(schema_data)  # Преобразуем строку в словарь
         if not isinstance(schema_data, dict):
             schema_data = ""  # Если не словарь, обнуляем данные
         if name in existing_schemes:
             st.toast("Схема с указанным названием существует", icon='⚠️')  # Уведомляем, если схема уже существует
             time.sleep(1)  # Задержка перед возвратом
-            return
+            return  # Выходим из функции, если схема уже существует
     except:
         schema_data = ""  # Если произошла ошибка, обнуляем данные
 
@@ -70,20 +68,20 @@ def delete_scheme(name):
 
 def get_additional_files(directory):
     """Получает список дополнительных файлов в указанной директории."""
-    return [os.path.join(directory, f) for f in os.listdir(directory) if f.endswith('.barfi')]
+    return [os.path.join(directory, f) for f in os.listdir(directory) if f.endswith('.barfi')]  # Возвращаем список файлов с расширением .barfi
 
 def load_additional_schemas(directory: str) -> Dict:
     """Загружает дополнительные схемы из указанной директории."""
-    additional_schemas = {}
-    for filename in get_additional_files(directory):
+    additional_schemas = {}  # Инициализируем пустой словарь для дополнительных схем
+    for filename in get_additional_files(directory):  # Проходим по всем дополнительным файлам
         try:
             # Открываем каждый файл и загружаем схемы
             with open(filename, 'rb') as handle_read:
-                schema = pickle.load(handle_read)
+                schema = pickle.load(handle_read)  # Загружаем схемы из файла
                 additional_schemas.update(schema)  # Обновляем словарь дополнительными схемами
         except Exception as e:
-            st.error(f"Ошибка при загрузке файла {filename}: {e}")  # Уведомляем об ошибке
-    return additional_schemas
+            st.error(f"Ошибка при загрузке файла {filename}: {e}")  # Уведомляем об ошибке, если не удалось загрузить файл
+    return additional_schemas  # Возвращаем загруженные дополнительные схемы
 
 def synchronize_schemas(main_file_name: str, additional_directory: str) -> None:
     """Синхронизирует схемы из основной и дополнительной директории."""
@@ -105,7 +103,6 @@ def synchronize_schemas(main_file_name: str, additional_directory: str) -> None:
                 while new_name in main_schemas:
                     new_name += "_copy"  # Увеличиваем имя, пока не найдем уникальное
                 main_schemas[new_name] = additional_schema  # Сохраняем дополнительную схему как новую
-                st.write(f"Схема '{name}' отличается. Сохраняем как '{new_name}'.")
                 changes_made = True  # Устанавливаем флаг изменений
         else:
             main_schemas[name] = additional_schema  # Если схемы нет, добавляем ее
@@ -113,7 +110,7 @@ def synchronize_schemas(main_file_name: str, additional_directory: str) -> None:
 
     # Сохраняем обновленные схемы в основной файл
     with open(main_file_name, 'wb') as handle_write:
-        pickle.dump(main_schemas, handle_write)
+        pickle.dump(main_schemas, handle_write)  # Сохраняем все схемы в файл
 
     # Уведомляем пользователя о завершении синхронизации
     if changes_made:
@@ -138,14 +135,14 @@ def import_schema(file, main_file_name: str):
 
         if st.button("Импортировать"):
             if selected_schema in main_schemas:
-                st.warning(f"Схема '{selected_schema}' уже существует. Пропускаем.")  # Уведомляем, если схема уже существует
+                st.warning(f"Схема '{selected_schema}' уже существует.")  # Уведомляем, если схема уже существует
             else:
                 main_schemas[selected_schema] = imported_schemas[selected_schema]  # Импортируем схему
                 st.toast(f"Схема '{selected_schema}' успешно импортирована!")  # Уведомляем об успешном импорте
 
                 # Сохраняем обновленные схемы в основной файл
                 with open(main_file_name, 'wb') as handle_write:
-                    pickle.dump(main_schemas, handle_write)
+                    pickle.dump(main_schemas, handle_write)  # Сохраняем изменения в файл
 
     except Exception as e:
         st.error(f"Ошибка при импорте схемы: {e}")  # Уведомляем об ошибке
@@ -203,9 +200,10 @@ def duplicate_schema(main_file_name: str):
 
                 # Сохраняем обновленные схемы в основной файл
                 with open(main_file_name, 'wb') as handle_write:
-                    pickle.dump(main_schemas, handle_write)
+                    pickle.dump(main_schemas, handle_write)  # Сохраняем изменения в файл
     else:
         st.warning("Нет доступных схем для дублирования.")  # Уведомляем, если нет схем для дублирования
+
 
 def make_base_blocks():
     """Создает базовые блоки для схемы."""
